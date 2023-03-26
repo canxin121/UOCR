@@ -5,6 +5,9 @@ UOCR: User-friendly Optical Character Recognition Program
 1.手写数字和字母数据集建立和模型训练
 2.ui界面，提供模型选项，提供画板多行识别和导入图片识别
 
+问题：  
+1.byclass模型精度不高（模型可以自己练）  
+
 todo：  
 1.导入图片自动识别行数
 2.导出识别内容保持原图片格式
