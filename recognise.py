@@ -1,3 +1,7 @@
+import tkinter as tk
+from ttkbootstrap import Style
+from tkinter import ttk
+from ttkbootstrap.constants import *
 import os
 from tkinter import *
 from tkinter import filedialog
@@ -10,7 +14,6 @@ from PIL import ImageDraw, Image
 
 from more import crop_image
 
-model = tf.keras.models.load_model('best.h5')
 digits = []
 num_row = 1
 # map:0mnist,1letter,2class
@@ -18,16 +21,18 @@ map = '0'
 # model:0best,emnist_letter
 modelchoice = '0'
 mappings = {}
-root = Path.cwd() / '\data\emnist'
-
+root = Path(__file__).parent / r'data\emnist'
+modelroot = Path(__file__).parent / r"models"
+model = tf.keras.models.load_model(str(modelroot/'best.h5'))
 def setmodelchoice(modelchoice):
     global model
     if modelchoice == '0':
-        model = tf.keras.models.load_model('best.h5')
+        model = tf.keras.models.load_model(str(modelroot/'best.h5'))
     elif modelchoice == '1':
-        model = tf.keras.models.load_model('emnist_letter.h5')
+        model = tf.keras.models.load_model(str(modelroot / 'lettersmore3.h5'))
     elif modelchoice == '2':
-        model = tf.keras.models.load_model('emnist.h5')
+        model = tf.keras.models.load_model(str(modelroot/'emnist.h5'))
+
 
 
 def setmatchoice(map):
@@ -59,6 +64,9 @@ def predict_digit(img):
         res = model.predict([img])[0]
         return np.argmax(res), max(res)
     else:
+        if modelchoice == '1':
+            image_data = np.rot90(img, -1)
+            img = np.fliplr(image_data)
         img = tensorflow.keras.preprocessing.image.img_to_array(img)
         img = img / 255.0
         img = np.expand_dims(img, axis=0)
@@ -73,54 +81,56 @@ def predict_digit(img):
 
 
 class App:
-
     def __init__(self):
         self.pen_color = "black"
-        self.root = Tk()
+        self.root = tk.Tk()
         self.mode = 'draw'
         self.root.withdraw()  # 隐藏根窗口
-        self.start_window = Toplevel(self.root)
+
+        # 创建 ttkbootstrap 窗口
+        self.style = Style(theme='yeti')
+        self.start_window = tk.Toplevel(self.root)
         self.start_window.geometry("300x300")
         self.start_window.title("开始")
         self.start_window.protocol("WM_DELETE_WINDOW", self.on_closing)
-        # 整个背景
+
         # 创建 PhotoImage 对象
-        bg_image = PhotoImage(file="./envdav/background.png")
-
-        # 创建 Label 控件并设置背景图片
-        bg_label = Label(self.start_window, image=bg_image)
-        bg_label.place(x=0, y=0)
-
-        # 保存对 PhotoImage 对象的引用，防止被垃圾回收
+        bg_image = tk.PhotoImage(file="./envdav/background.png")
+        # 创建标签小部件
+        bg_label = ttk.Label(self.start_window, image=bg_image)
+        # 把图片对象作为标签对象的一个属性
         bg_label.image = bg_image
+        # 使用 place 方法放置标签小部件
 
-        btn_canvas = Button(self.start_window, text="画布识别", command=self.show_canvas)
-        btn_canvas.place(relx=0.5, rely=0.3, anchor=CENTER, width=80, height=40)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        btn_import = Button(self.start_window, text="导入图片识别", command=self.import_image_recognition)
-        btn_import.place(relx=0.5, rely=0.6, anchor=CENTER, width=80, height=40)
+        # 创建按钮小部件
+        btn_canvas = ttk.Button(self.start_window, text="画布识别", command=self.show_canvas)
+        btn_canvas.place(relx=0.5, rely=0.3, anchor='center', width=120, height=50)
 
-        # 在导入图片识别按钮下面创建一个标签，显示选择框的描述
-        self.label_map = Label(self.start_window, text="选择map")
-        self.label_map.place(relx=0.2, rely=0.8, anchor=CENTER)
+        btn_import = ttk.Button(self.start_window, text="导入图片识别", command=self.import_image_recognition)
+        btn_import.place(relx=0.5, rely=0.5, anchor='center', width=120, height=50)
+        # 创建标签和下拉菜单小部件
+        self.label_map = ttk.Label(self.start_window, text="选择map")
+        self.label_map.place(relx=0.15, rely=0.7, anchor='center')
 
-        # 创建一个下拉菜单，提供两个选项
-        self.map_var = StringVar()  # 创建一个变量，用来保存选择的值
-        self.map_var.set('mnist')  # 设置默认值
-        self.option_menu = OptionMenu(self.start_window, self.map_var, 'mnist', 'emnist-letters', 'emnist-byclass')
-        self.option_menu.place(relx=0.55, rely=0.8, anchor=CENTER, width=130, height=20)
+        self.map_var = tk.StringVar()  # 创建一个变量，用来保存选择的值
+        self.map_var.set("mnist")  # 设置默认值
+        self.option_menu = ttk.OptionMenu(self.start_window, self.map_var, 'mnist', 'mnist', 'emnist-letters', 'emnist-byclass')
+        self.option_menu.place(relx=0.5, rely=0.7, anchor='center', width=120, height=30)
+
+        # 创建一个输入框，使用 bootstyle 参数设置样式
+        self.entry = ttk.Spinbox(self.start_window, from_=1, to=4)
+        self.entry.place(relx=0.5, rely=0.9, anchor=CENTER, width=120, height=30)
+        self.entry.insert(0,"1")
 
         # 创建一个标签，显示输入框的描述
-        self.label = Label(self.start_window, text="输入行数1~4")
-        self.label.place(relx=0.2, rely=0.9, anchor=CENTER)
+        self.label = ttk.Label(self.start_window,text="输入行数1~4")
+        self.label.place(relx=0.15, rely=0.90, anchor=tk.CENTER)
 
-        # 创建一个输入框
-        self.entry = Entry(self.start_window)
-        self.entry.place(relx=0.5, rely=0.9, anchor=CENTER, width=80, height=20)
-
-        # 创建一个确定按钮，绑定点击事件
-        self.button = Button(self.start_window, text="确定", command=self.get_num_row)
-        self.button.place(relx=0.75, rely=0.9, anchor=CENTER, width=40, height=20)
+        # 创建一个确定按钮，绑定点击事件，使用 bootstyle 参数设置样式
+        self.button = ttk.Button(self.start_window, text="确定", command=self.get_num_row)
+        self.button.place(relx=0.80, rely=0.9, anchor=CENTER, width=50, height=35)
 
         if not os.path.exists('recognized'):
             os.mkdir('recognized')
