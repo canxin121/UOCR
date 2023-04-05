@@ -7,7 +7,7 @@ from keras.utils import np_utils
 from mlxtend.data import loadlocal_mnist
 from tensorflow.python.keras.callbacks import EarlyStopping
 
-
+#多选择特定的数据来增量训练
 def process_data(x_train, y_train, x_test, y_test, a1, a2, p1, p2):
     # 找出标签为a1和a2的索引
     train_index_a1_a2 = np.where((y_train == a1) | (y_train == a2))[0]
