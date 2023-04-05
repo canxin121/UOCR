@@ -1,6 +1,6 @@
 # UOCR: User-friendly Optical Character Recognition Program
 
-## 已经实现；  
+## 已经实现：  
 1.手写数字和字母数据集建立和模型训练  
 2.ui界面，提供模型选项，提供画板多行识别和导入图片识别
 
