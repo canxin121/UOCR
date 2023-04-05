@@ -21,4 +21,3 @@
 ![image](https://github.com/canxin121/UOCR/blob/main/envdav/show%20(2).png)  
 ![image](https://github.com/canxin121/UOCR/blob/main/envdav/show%20(3).png)  
 ![image](https://github.com/canxin121/UOCR/blob/main/envdav/show%20(4).png)  
-![image](https://github.com/canxin121/UOCR/blob/main/envdav/show%20(5).png)  
