@@ -3,8 +3,9 @@ import numpy as np
 from pathlib import Path
 import struct
 
-root = Path.cwd()
-Names = [['./train', './data/train'], ['./test', './data/test']]
+#本文件是将train和test的所有图片写成数据集
+root = Path.cwd()/'pre_data'
+Names = [['./train', './data/mnist/train'], ['./test', './data/mnist/test']]
 for name in Names:
     # 获取train和test的文件夹
     Dir = root / name[0]

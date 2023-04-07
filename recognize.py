@@ -23,15 +23,15 @@ modelchoice = '0'
 mappings = {}
 root = Path(__file__).parent / r'data\emnist'
 modelroot = Path(__file__).parent / r"models"
-model = tf.keras.models.load_model(str(modelroot/'best.h5'))
+model = tf.keras.models.load_model(str(modelroot/'_mnist_.h5'))
 def setmodelchoice(modelchoice):
     global model
     if modelchoice == '0':
-        model = tf.keras.models.load_model(str(modelroot/'best.h5'))
+        model = tf.keras.models.load_model(str(modelroot/'_mnist_1_.h5'))
     elif modelchoice == '1':
-        model = tf.keras.models.load_model(str(modelroot / 'lettersmore.h5'))
+        model = tf.keras.models.load_model(str(modelroot / '_letters_.h5'))
     elif modelchoice == '2':
-        model = tf.keras.models.load_model(str(modelroot/'emnist.h5'))
+        model = tf.keras.models.load_model(str(modelroot/'_byclass_.h5'))
 
 
 
@@ -82,6 +82,8 @@ def predict_digit(img):
 
 class App:
     def __init__(self):
+        self.paths = []
+        self.stack = []
         self.pen_color = "black"
         self.root = tk.Tk()
         self.mode = 'draw'
@@ -159,7 +161,8 @@ class App:
         setmatchoice(map)
         modelchoice = map
         setmodelchoice(modelchoice)
-        print("map =", map)  # 打印测试
+        # print("map =", map)  # 打印测试
+        
     def get_map(self):
             self.set_map()
     def get_num_row(self):
@@ -171,52 +174,62 @@ class App:
             if num_row > 4 or num_row <= 0:
                 # 如果不合理，弹出提示框
                 messagebox.showerror("错误", "请输入0到4之间的整数(屏幕没那么大)")
-            else:
-                # 如果合理，弹出提示框
-                messagebox.showinfo("成功", "选择的画布的行数是{}".format(num_row))
+            # else:
+            #     # 如果合理，弹出提示框
+            #     messagebox.showinfo("成功", "选择的画布的行数是{}".format(num_row))
         except ValueError:
             # 如果转换失败，说明输入的不是数字，弹出提示框
             messagebox.showerror("错误", "请输入数字")
 
     def printf(self, string):
+        # 创建一个Toplevel窗口用于显示识别结果
         self.printf_window = Toplevel(self.root)
         self.printf_window.title('识别结果')
         self.printf_window.geometry("250x100")
+        # 创建一个标签并显示传入的字符串
         label = Label(self.printf_window, text=string, anchor=CENTER, justify=CENTER)
         label.pack(expand=YES)
 
-    # noinspection PyAttributeOutsideInit
-
     def on_closing(self):
+        # 关闭画布窗口时调用的函数
         self.root.quit()
 
     def show_canvas(self):
-        self.mode = 'draw'
         # 显示画布和其他按钮
-        self.start_window.withdraw()
-        self.canvas_window = Toplevel(self.root)
-        self.canvas_window.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.mode = 'draw'
+        self.start_window.withdraw()  # 隐藏启动窗口
+        self.canvas_window = Toplevel(self.root)  # 创建一个Toplevel窗口用于显示画布
+        self.canvas_window.protocol("WM_DELETE_WINDOW", self.on_closing)  # 设置关闭窗口时的回调函数
         self.canvas_window.title("画布")
 
         self.canvas = Canvas(self.canvas_window, bg='white', width=1240, height=200 * num_row)
         self.canvas.pack()
+        # 在画布上绘制水平参考线
         for i in range(1, num_row):
             self.canvas.create_line(0, 200 * i, 1240, 200 * i, dash=(5, 5), tag='guide')
-        self.image1 = Image.new("RGB", (1240, 200 * num_row), 'white')
-        self.draw = ImageDraw.Draw(self.image1)
-        self.canvas.bind("<B1-Motion>", self.paint)
+        self.image1 = Image.new("RGB", (1240, 200 * num_row), 'white')  # 创建一个白色图像用于绘制
+        self.draw = ImageDraw.Draw(self.image1)  # 创建一个ImageDraw对象用于绘制
+
+        # 绑定鼠标事件
+        self.canvas.bind("<Button-1>", self.start_path)  # 开始一个新的轨迹
+        self.canvas.bind("<B1-Motion>", self.paint)  # 绘制椭圆并记录轨迹
+        self.canvas.bind("<ButtonRelease-1>", self.end_path)  # 结束当前轨迹
 
         button_frame = Frame(self.canvas_window)
         button_frame.pack(side=BOTTOM, anchor=CENTER)
 
         btn_recognize = Button(button_frame, text="识别", command=self.recognize)
-        btn_recognize.pack(side=LEFT)
+        btn_recognize.pack(side=LEFT)  # 显示识别按钮
 
         btn_clear = Button(button_frame, text="清除", command=self.clear_all)
-        btn_clear.pack(side=LEFT)
+        btn_clear.pack(side=LEFT)  # 显示清除按钮
+
+        btn_undo = Button(button_frame, text="撤回", command=self.undo)
+        btn_undo.pack(side=LEFT)  # 显示撤回按钮
 
         btn_back = Button(button_frame, text="返回", command=self.back_to_start)
-        btn_back.pack(side=LEFT)
+        btn_back.pack(side=LEFT)  # 显示返回按钮
+
 
         # 创建一个画笔颜色的变量
         self.pen_color = "black"
@@ -241,9 +254,39 @@ class App:
     def paint(self, event):
         x1, y1 = (event.x - 8), (event.y - 8)
         x2, y2 = (event.x + 8), (event.y + 8)
-        self.canvas.create_oval(x1, y1, x2, y2, fill=self.pen_color, outline=self.pen_color)
+        # 创建一个椭圆并将其 id 压入栈中
+        oval_id = self.canvas.create_oval(x1, y1, x2, y2, fill=self.pen_color, outline=self.pen_color)
+        self.stack.append(oval_id)
         self.draw.ellipse([x1, y1, x2, y2], fill=self.pen_color, outline=self.pen_color)
 
+        # 添加鼠标坐标到当前轨迹
+        self.current_path.append((event.x, event.y))
+
+    def start_path(self, event):
+        # 创建一个新的轨迹
+        self.current_path = []
+        self.paths.append(self.current_path)
+
+    def end_path(self, event):
+        # 结束当前轨迹
+        self.current_path = None
+
+    def undo(self):
+        # 撤销上一次鼠标从按下到松开创建的轨迹
+        # 如果当前轨迹不为空，说明鼠标还没有松开，先结束当前轨迹
+         if self.current_path:
+             self.end_path(None)
+
+         # 如果轨迹列表不为空，说明还有轨迹可以撤销
+         if self.paths:
+             # 弹出最后一个轨迹
+             last_path = self.paths.pop()
+             # 遍历该轨迹中的每个坐标点
+             for point in last_path:
+                 # 弹出栈顶的椭圆 id 并删除该椭圆
+                 oval_id = self.stack.pop()
+                 self.canvas.delete(oval_id)
+                 
     def back_to_start(self):
         # 销毁画布识别窗口
         self.canvas_window.destroy()

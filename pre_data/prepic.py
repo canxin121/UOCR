@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-
+#本文件是图片处理函数
 def image_preprocessing(imgpath):
     img = cv2.imdecode(np.fromfile(imgpath, dtype=np.uint8), -1)
     # 对图片边界进行扩展，防止后续裁剪时因边界值造成越界

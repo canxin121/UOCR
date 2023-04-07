@@ -14,10 +14,10 @@ import seaborn as sns
 
 # 调用本项目中数据集
 dataroot = Path.cwd() / 'data/emnist/'
-train_images, train_labels = loadlocal_mnist(images_path=str(dataroot / 'emnist-letters-train-images-idx3-ubyte'),
-                                             labels_path=str(dataroot / 'emnist-letters-train-labels-idx1-ubyte'))
-test_images, test_labels = loadlocal_mnist(images_path=str(dataroot / 'emnist-letters-test-images-idx3-ubyte'),
-                                           labels_path=str(dataroot / 'emnist-letters-test-labels-idx1-ubyte'))
+train_images, train_labels = loadlocal_mnist(images_path=str(dataroot / 'emnist-byclass-train-images-idx3-ubyte'),
+                                             labels_path=str(dataroot / 'emnist-byclass-train-labels-idx1-ubyte'))
+test_images, test_labels = loadlocal_mnist(images_path=str(dataroot / 'emnist-byclass-test-images-idx3-ubyte'),
+                                           labels_path=str(dataroot / 'emnist-byclass-test-labels-idx1-ubyte'))
 # 将加载的本地数据集 转换成四维向量，并转换格式为float32并进行归一化
 
 # 将二维的数据转化成思维，前三个维度表示图像的高度、宽度和通道数（例如RGB图像有3个通道），最后一个维度表示样本数量
@@ -41,7 +41,7 @@ model.add(MaxPooling2D((2, 2)))  # 添加另一个最大池化层，使用2x2的
 model.add(Conv2D(64, (3, 3), activation='relu'))  # 添加最后一个卷积层，使用64个3x3的过滤器，激活函数为relu
 model.add(Flatten())  # 添加一个展平层，将三维张量转换为一维向量
 model.add(Dense(64, activation='relu'))  # 添加一个全连接层，使用64个神经元，激活函数为relu
-model.add(Dense(27, activation='softmax'))  # 添加最后一个全连接层，使用10个神经元，激活函数为softmax，输出10个类别的概率
+model.add(Dense(62, activation='softmax'))  # 添加最后一个全连接层，使用10个神经元，激活函数为softmax，输出10个类别的概率
 
 # 编译模型，指定优化器，损失函数和评估指标
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -65,7 +65,7 @@ history = model.fit(datagen.flow(x_train, y_train, batch_size=32),  # 使用数�
                     validation_data=(x_test, y_test),  # 验证数据集
                     callbacks=[early_stopping])  # 回调函数
 
-model.save('emnist_letters2.h5')
+model.save('emnist_byclass_3.h5')
 # 在测试数据集上评估模型的性能
 test_loss, test_acc = model.evaluate(x_test, y_test)
 print('Test loss:', test_loss)

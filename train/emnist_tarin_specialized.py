@@ -75,10 +75,10 @@ x_test = x_test4D / 255
 y_train = np_utils.to_categorical(train_labels)
 y_test = np_utils.to_categorical(test_labels)
 
-x_train_new, y_train_new, x_test_new, y_test_new = process_data(x_train,y_train,x_test,y_test,2,5,0.9,0.01)
+x_train_new, y_train_new, x_test_new, y_test_new = process_data(x_train,y_train,x_test,y_test,4,16,0.9,0.01)
 
 # 加载模型
-model = tf.keras.models.load_model('lettersmore2.h5', compile=False)
+model = tf.keras.models.load_model('models/_letters_more_.h5', compile=False)
 
 # 编译模型
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -95,4 +95,4 @@ history = model.fit(x_train, y_train, batch_size=16,  # 使用数据生成器对
                     callbacks=[early_stopping])
 
 # 保存模型
-model.save('lettersmore.h5')
+model.save('models/_letters_more_2.h5')

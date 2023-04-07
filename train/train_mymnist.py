@@ -11,7 +11,7 @@ from mlxtend.data import loadlocal_mnist
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # 调用本项目中数据集
-dataroot = Path.cwd() / 'data/'
+dataroot = Path.cwd() / 'data' / 'mnist'
 train_images, train_labels = loadlocal_mnist(images_path=str(dataroot / 'train-images-idx3-ubyte'),
                                              labels_path=str(dataroot / 'train-labels-idx1-ubyte'))
 test_images, test_labels = loadlocal_mnist(images_path=str(dataroot / 'test-images-idx3-ubyte'),
